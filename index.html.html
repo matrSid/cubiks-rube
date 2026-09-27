@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cube Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;700&family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f8; --panel:#ffffff; --panel-2:#f3f6fb; --line:#d6deed; --text:#142036; --muted:#5a6a86;
+  --accent:#2a63e0; --accent-ink:#ffffff; --danger:#c8362b;
+  --t-idle:#142036; --t-hold:#d32f24; --t-ready:#0f9d57; --t-insp:#a87500; --t-insp2:#d15a08; --t-insp3:#d32f24; --t-prep:#2a63e0;
+  --tile-off:#dde5f2;
+  --g-solve:#2a63e0; --g-ao5:#dd7a00; --g-ao12:#0f9d57; --grid:#e2e8f3;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1727; --panel:#152238; --panel-2:#1a2a45; --line:#27395a; --text:#e9eff9; --muted:#93a3c2;
+    --accent:#4f8bff; --accent-ink:#0b1424; --danger:#ff6b5c;
+    --t-idle:#f2f6fd; --t-hold:#ff5c4d; --t-ready:#3fe08a; --t-insp:#ffd23a; --t-insp2:#ff9a3d; --t-insp3:#ff5c4d; --t-prep:#6aa6ff;
+    --tile-off:#22355a;
+    --g-solve:#6aa6ff; --g-ao5:#ffa94d; --g-ao12:#4be08e; --grid:#22334f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1727; --panel:#152238; --panel-2:#1a2a45; --line:#27395a; --text:#e9eff9; --muted:#93a3c2;
+  --accent:#4f8bff; --accent-ink:#0b1424; --danger:#ff6b5c;
+  --t-idle:#f2f6fd; --t-hold:#ff5c4d; --t-ready:#3fe08a; --t-insp:#ffd23a; --t-insp2:#ff9a3d; --t-insp3:#ff5c4d; --t-prep:#6aa6ff;
+  --tile-off:#22355a;
+  --g-solve:#6aa6ff; --g-ao5:#ffa94d; --g-ao12:#4be08e; --grid:#22334f;
+  color-scheme: dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  font-size:15px;line-height:1.45;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:1180px;margin:0 auto;padding:16px 16px 48px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:20px;line-height:1;margin:0;font-weight:800;letter-spacing:-0.01em}
+.logo{display:grid;grid-template-columns:repeat(3,7px);gap:2px}
+.logo i{display:block;width:7px;height:7px;border-radius:2px}
+.top-actions{display:flex;gap:8px}
+
+/* buttons & inputs */
+.btn{
+  border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer;
+  font-weight:500;line-height:1.2;
+}
+.btn:hover{background:var(--panel-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--danger)}
+.btn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.small{padding:5px 9px;font-size:13px}
+.lnk{border:0;background:none;padding:4px 6px;cursor:pointer;color:var(--muted);font-size:13px;border-radius:6px}
+.lnk:hover{color:var(--text);background:var(--panel-2)}
+.lnk.danger:hover{color:var(--danger)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.pad:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px
+}
+input[type=text],input[type=datetime-local],select,textarea{
+  width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;
+}
+textarea{resize:vertical;font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:1.5}
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:16px;height:16px;margin:0}
+select{width:auto;min-width:0}
+
+/* layout */
+main{display:flex;flex-direction:column;gap:16px}
+.col{display:contents}
+.stage{order:1}.stats{order:2}.graph{order:3}.solves{order:4}
+@media (min-width:900px){
+  main{flex-direction:row;align-items:flex-start;gap:20px}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .col-left{flex:1 1 0}
+  .col-right{flex:0 0 360px}
+}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.panel h2{margin:0;font-size:16px;font-weight:700;letter-spacing:-0.005em}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.empty{color:var(--muted);margin:8px 0}
+body.running .dim{opacity:.12;pointer-events:none}
+.dim{transition:opacity .15s}
+
+/* scramble */
+.scramble{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.scr-text{
+  font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:500;
+  font-size:clamp(15px,2.4vw,19px);line-height:1.75;letter-spacing:.02em;word-spacing:.15em;
+}
+
+/* timer pad */
+.pad{
+  --tcol:var(--t-idle);--tc:var(--tile-off);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  min-height:clamp(270px,46vh,430px);padding:24px 12px;
+  background:var(--panel);border:1px solid var(--line);border-radius:22px;
+  cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;text-align:center;
+}
+.pad[data-state="pressed"]{--tcol:var(--t-prep)}
+.pad[data-state="hold"]{--tcol:var(--t-hold);--tc:var(--t-hold)}
+.pad[data-state="ready"]{--tcol:var(--t-ready);--tc:var(--t-ready)}
+.pad[data-state="prep"]{--tcol:var(--t-prep);--tc:var(--t-prep)}
+.pad[data-state="inspect1"]{--tcol:var(--t-insp);--tc:var(--t-insp)}
+.pad[data-state="inspect2"]{--tcol:var(--t-insp2);--tc:var(--t-insp2)}
+.pad[data-state="inspect3"]{--tcol:var(--t-insp3);--tc:var(--t-insp3)}
+.face{display:grid;grid-template-columns:repeat(3,14px);gap:4px}
+.face i{display:block;width:14px;height:14px;border-radius:4px;background:var(--tile-off);transition:background .08s}
+.face i.on{background:var(--tc)}
+.time{
+  font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:700;
+  font-size:clamp(56px,18vw,120px);line-height:1;letter-spacing:-0.04em;white-space:nowrap;
+  color:var(--tcol);font-variant-numeric:tabular-nums;
+}
+.time.txt{font-size:clamp(34px,10vw,64px);letter-spacing:-0.02em}
+@media (min-width:900px){ .time{font-size:clamp(72px,8.5vw,132px)} .time.txt{font-size:clamp(40px,4.5vw,64px)} }
+.note{min-height:1.4em;font-weight:600;color:var(--accent)}
+.hint{color:var(--muted);max-width:36ch;min-height:2.9em}
+.after{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+.after .lbl{margin-right:auto;color:var(--muted)}
+.after .lbl b{font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--text);font-weight:700}
+.cancel-row{display:flex;justify-content:center;margin-top:12px}
+
+/* stats */
+.stat-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.stat-table th{font-weight:500;color:var(--muted);text-align:right;padding:0 0 6px;font-size:13px}
+.stat-table th:first-child{text-align:left}
+.stat-table td{padding:7px 0;border-top:1px solid var(--line);text-align:right;font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+.stat-table td:first-child{text-align:left;font-family:inherit;font-size:15px;font-weight:500}
+.stat-list{margin:14px 0 0;display:grid;grid-template-columns:1fr auto;gap:0}
+.stat-list dt,.stat-list dd{margin:0;padding:7px 0;border-top:1px solid var(--line)}
+.stat-list dt{color:var(--muted)}
+.stat-list dd{text-align:right;font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+
+/* graph */
+.chart-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px}
+.chart-tools label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.chart-tools .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+.chart-tools select{padding:5px 8px;font-size:13px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;touch-action:pan-y}
+.chart .ax{fill:var(--muted);font-size:11px;font-family:'Bricolage Grotesque',system-ui,sans-serif}
+.chart .gl{stroke:var(--grid);stroke-width:1}
+.chart .tip{
+  position:absolute;pointer-events:none;background:var(--text);color:var(--bg);border-radius:8px;
+  padding:7px 10px;font-size:12.5px;line-height:1.4;white-space:nowrap;z-index:2;
+}
+.chart .tip b{font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
+
+/* solve list */
+.list{list-style:none;margin:0;padding:0;max-height:440px;overflow:auto}
+.row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:6px;padding:7px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.idx{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.rt{font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:15px}
+.rd{display:block;color:var(--muted);font-size:12px}
+.row-actions{display:flex;gap:2px}
+.more{margin-top:10px;width:100%}
+
+/* dialogs */
+dialog{
+  border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);padding:0;
+  width:min(540px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
+}
+dialog[open]{display:flex;flex-direction:column}
+dialog::backdrop{background:rgba(8,14,26,.6)}
+.dlg-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.dlg-head h2{margin:0;font-size:17px;font-weight:700}
+.dlg-body{padding:16px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.dlg-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+.dlg-foot .spacer{margin-right:auto}
+.opt{display:flex;flex-direction:column;gap:6px}
+.opt .name{font-weight:600}
+.opt .desc{color:var(--muted);font-size:13.5px;margin:0}
+.check{display:flex;align-items:center;gap:10px;font-weight:600;cursor:pointer}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.name{font-weight:600}
+.radios{display:flex;gap:16px;flex-wrap:wrap}
+.radios label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.inline-msg{font-size:13.5px;color:var(--muted);min-height:1.4em;margin:0}
+.inline-msg.err{color:var(--danger)}
+.section-title{margin:0;font-size:15px;font-weight:700}
+hr.sep{border:0;border-top:1px solid var(--line);margin:0}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  background:var(--text);color:var(--bg);border-radius:10px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:10px;z-index:50;
+  max-width:calc(100vw - 24px);
+}
+.toast[hidden]{display:none}
+.toast button{border:0;background:rgba(127,127,127,.28);color:inherit;border-radius:7px;padding:5px 10px;cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top dim">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <i style="background:#e63b2e"></i><i style="background:#f4f6fa;box-shadow:inset 0 0 0 1px #b9c4d8"></i><i style="background:#3b7bff"></i>
+        <i style="background:#2fcf76"></i><i style="background:#ffd23a"></i><i style="background:#ff8a1f"></i>
+        <i style="background:#f4f6fa;box-shadow:inset 0 0 0 1px #b9c4d8"></i><i style="background:#3b7bff"></i><i style="background:#e63b2e"></i>
+      </div>
+      <h1>Cube Timer</h1>
+    </div>
+    <div class="top-actions">
+      <button class="btn" id="btnSettings" type="button">Settings</button>
+      <button class="btn" id="btnData" type="button">Import / export</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="col col-left">
+      <section class="stage" aria-label="Timer">
+        <div class="scramble dim">
+          <div class="scr-text" id="scramble" aria-label="Scramble"></div>
+          <button class="btn small" id="btnScr" type="button">New scramble</button>
+        </div>
+        <div class="pad" id="pad" role="button" tabindex="0" aria-label="Timer. Hold space, or press and hold here, to start." data-state="idle">
+          <div class="face" id="face" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="time" id="time">0.00</div>
+          <div class="note" id="note"></div>
+          <div class="hint" id="hint" aria-live="polite"></div>
+        </div>
+        <div class="cancel-row" id="cancelRow" hidden>
+          <button class="btn" id="btnCancel" type="button">Cancel this solve</button>
+        </div>
+        <div class="after dim" id="after" hidden>
+          <span class="lbl" id="afterLbl"></span>
+          <button class="btn small" id="btnPlus2" type="button" aria-pressed="false">+2</button>
+          <button class="btn small" id="btnDNF" type="button" aria-pressed="false">DNF</button>
+          <button class="btn small danger" id="btnDelLast" type="button">Delete</button>
+        </div>
+      </section>
+
+      <section class="panel graph dim" aria-label="Solve graph">
+        <div class="panel-head">
+          <h2>Progress</h2>
+          <div class="chart-tools">
+            <select id="range" aria-label="Solves shown in graph">
+              <option value="25">Last 25</option>
+              <option value="50">Last 50</option>
+              <option value="100">Last 100</option>
+              <option value="500">Last 500</option>
+              <option value="0">All solves</option>
+            </select>
+            <label><input type="checkbox" id="showAo5"><span class="sw" style="background:var(--g-ao5)"></span>Ao5</label>
+            <label><input type="checkbox" id="showAo12"><span class="sw" style="background:var(--g-ao12)"></span>Ao12</label>
+          </div>
+        </div>
+        <div class="chart" id="chart"></div>
+      </section>
+    </div>
+
+    <div class="col col-right">
+      <section class="panel stats dim" aria-label="Statistics">
+        <div class="panel-head"><h2>Statistics</h2></div>
+        <table class="stat-table">
+          <thead><tr><th></th><th>Current</th><th>Best</th></tr></thead>
+          <tbody id="statRows"></tbody>
+        </table>
+        <dl class="stat-list" id="statList"></dl>
+      </section>
+
+      <section class="panel solves dim" aria-label="Solves">
+        <div class="panel-head">
+          <h2>Solves</h2>
+          <button class="btn small danger" id="btnClear" type="button">Clear all</button>
+        </div>
+        <ul class="list" id="list"></ul>
+        <button class="btn more" id="btnMore" type="button" hidden>Show more</button>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- Settings -->
+<dialog id="dlgSettings" aria-labelledby="dlgSettingsTitle">
+  <div class="dlg-head"><h2 id="dlgSettingsTitle">Settings</h2><button class="lnk" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <div class="opt">
+      <label class="check"><input type="checkbox" id="setInsp">15-second inspection</label>
+      <p class="desc">Tap once to start a 15-second countdown, look over the cube, then hold and release to start solving. Starting after 15 seconds adds +2. Starting after 17 seconds counts as DNF.</p>
+    </div>
+    <div class="opt">
+      <label class="check"><input type="checkbox" id="setAuto">Start the timer automatically when inspection ends</label>
+      <p class="desc">At 15 seconds the solve timer starts on its own, with no penalty. You can still hold and release earlier to start sooner.</p>
+    </div>
+    <div class="opt">
+      <label class="check"><input type="checkbox" id="setBeep">Beep at 8 and 12 seconds</label>
+      <p class="desc">Only used during inspection.</p>
+    </div>
+    <div class="opt">
+      <label class="name" for="setPrep">Time to place the cube down</label>
+      <select id="setPrep">
+        <option value="0">Off</option>
+        <option value="3">3 seconds</option>
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+      </select>
+      <p class="desc">A countdown that runs before inspection (or before the solve, if inspection is off), so you can set the cube on the mat. Tap during the countdown to skip it.</p>
+    </div>
+    <div class="opt">
+      <label class="name" for="setLive">While solving, show</label>
+      <select id="setLive">
+        <option value="live">Live time (0.01 s)</option>
+        <option value="seconds">Whole seconds</option>
+        <option value="hidden">Nothing</option>
+      </select>
+    </div>
+  </div>
+  <div class="dlg-foot"><button class="btn primary" type="button" data-close>Done</button></div>
+</dialog>
+
+<!-- Import / export -->
+<dialog id="dlgData" aria-labelledby="dlgDataTitle">
+  <div class="dlg-head"><h2 id="dlgDataTitle">Import and export</h2><button class="lnk" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <div class="field">
+      <h3 class="section-title">Export your solves</h3>
+      <textarea id="expText" rows="6" readonly aria-label="Exported solves"></textarea>
+      <label class="check" style="font-weight:500"><input type="checkbox" id="incScr" checked>Include scrambles</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn primary small" id="btnCopy" type="button">Copy text</button>
+        <button class="btn small" id="btnSelect" type="button">Select all</button>
+        <span class="inline-msg" id="expMsg" role="status"></span>
+      </div>
+    </div>
+    <hr class="sep">
+    <div class="field">
+      <h3 class="section-title">Import solves</h3>
+      <textarea id="impText" rows="6" aria-label="Text to import" placeholder="Paste a Cube Timer export here. A plain list of times also works, one per line (for example 12.34, 1:02.5, 15.20+, DNF)."></textarea>
+      <div class="radios">
+        <label><input type="radio" name="impMode" value="merge" checked>Add to my solves</label>
+        <label><input type="radio" name="impMode" value="replace">Replace my solves</label>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn primary small" id="btnImport" type="button">Import</button>
+        <span class="inline-msg" id="impMsg" role="status"></span>
+      </div>
+    </div>
+  </div>
+  <div class="dlg-foot"><button class="btn" type="button" data-close>Done</button></div>
+</dialog>
+
+<!-- Edit solve -->
+<dialog id="dlgEdit" aria-labelledby="dlgEditTitle">
+  <div class="dlg-head"><h2 id="dlgEditTitle">Edit solve</h2><button class="lnk" type="button" data-close>Close</button></div>
+  <div class="dlg-body">
+    <div class="field">
+      <label for="eTime">Time</label>
+      <input type="text" id="eTime" inputmode="decimal" autocomplete="off" placeholder="12.34 or 1:05.20">
+      <p class="inline-msg" id="eMsg" role="status"></p>
+    </div>
+    <div class="field">
+      <span class="name">Penalty</span>
+      <div class="radios">
+        <label><input type="radio" name="ePen" value="0">None</label>
+        <label><input type="radio" name="ePen" value="2000">+2</label>
+        <label><input type="radio" name="ePen" value="-1">DNF</label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="eDate">Date and time</label>
+      <input type="datetime-local" id="eDate">
+    </div>
+    <div class="field">
+      <span class="name">Scramble</span>
+      <div class="scr-text" id="eScr" style="font-size:14px"></div>
+    </div>
+  </div>
+  <div class="dlg-foot">
+    <button class="btn danger spacer" id="eDelete" type="button">Delete solve</button>
+    <button class="btn" type="button" data-close>Cancel</button>
+    <button class="btn primary" id="eSave" type="button">Save changes</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastUndo">Undo</button></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- constants & state ---------- */
+const HOLD_MS = 300, INSPECT_MS = 15000, DNF_AFTER = 17000;
+const DEFAULTS = { insp:false, auto:false, beep:true, prep:0, live:'live', range:100, ao5:true, ao12:true };
+const $ = id => document.getElementById(id);
+
+let settings = { ...DEFAULTS };
+let solves = [];          // sorted by ts ascending: {id, ms, pen (0 | 2000 | -1 for DNF), ts, scr}
+let scramble = '';
+let undoSnap = null;
+let undoTimer = 0;
+let listLimit = 100;
+let editingId = null;
+
+const S = {
+  phase:'idle',            // idle | prep | inspect | running
+  down:false, pressed:false, holding:false, ready:false, armed:false,
+  holdStart:0, prepStart:0, prepMs:0, inspStart:0, runStart:0, pen:0,
+  b8:false, b12:false, raf:0, note:''
+};
+
+/* ---------- storage ---------- */
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+const validSolve = o => o && typeof o === 'object' && Number.isFinite(o.ms) && o.ms > 0 &&
+  (o.pen === 0 || o.pen === 2000 || o.pen === -1) && Number.isFinite(o.ts);
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem('cubetimer:settings') || 'null');
+    if (s && typeof s === 'object') settings = { ...DEFAULTS, ...s };
+  }catch(e){}
+  try{
+    const a = JSON.parse(localStorage.getItem('cubetimer:solves') || '[]');
+    if (Array.isArray(a)) solves = a.filter(validSolve).map(o => ({ id:o.id || uid(), ms:o.ms, pen:o.pen, ts:o.ts, scr:o.scr || '' }));
+  }catch(e){}
+  solves.sort((a,b) => a.ts - b.ts);
+}
+function saveSettings(){ try{ localStorage.setItem('cubetimer:settings', JSON.stringify(settings)); }catch(e){} }
+function saveSolves(){ try{ localStorage.setItem('cubetimer:solves', JSON.stringify(solves)); }catch(e){} }
+
+/* ---------- formatting & maths ---------- */
+function fmt(ms){
+  if (ms == null || !isFinite(ms)) return '—';
+  const cs = Math.floor(ms / 10), secs = Math.floor(cs / 100), frac = String(cs % 100).padStart(2, '0');
+  if (secs >= 60) return Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0') + '.' + frac;
+  return secs + '.' + frac;
+}
+const fmtAvg = ms => fmt(Math.round(ms / 10) * 10);
+const cell = v => v === null || v === undefined ? '—' : (!isFinite(v) ? 'DNF' : fmtAvg(v));
+const eff = s => s.pen === -1 ? Infinity : s.ms + (s.pen > 0 ? s.pen : 0);
+function solveText(s){
+  if (s.pen === -1) return 'DNF';
+  return s.pen > 0 ? fmt(s.ms + s.pen) + '+' : fmt(s.ms);
+}
+function fmtDate(ts, withTime = true){
+  const d = new Date(ts);
+  const o = { month:'short', day:'numeric' };
+  if (d.getFullYear() !== new Date().getFullYear()) o.year = 'numeric';
+  if (withTime){ o.hour = '2-digit'; o.minute = '2-digit'; }
+  return d.toLocaleString(undefined, o);
+}
+function toLocalInput(ts){
+  const d = new Date(ts), p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function parseTime(str){
+  str = String(str).trim().replace(',', '.');
+  let m = str.match(/^(\d+):(\d{1,2})(?:\.(\d{1,3}))?$/);
+  if (m){
+    const sec = +m[2]; if (sec >= 60) return null;
+    const frac = m[3] ? Math.round(parseFloat('0.' + m[3]) * 1000) : 0;
+    return (+m[1] * 60 + sec) * 1000 + frac;
+  }
+  m = str.match(/^(\d+)(?:\.(\d{1,3}))?$/);
+  if (m) return (+m[1]) * 1000 + (m[2] ? Math.round(parseFloat('0.' + m[2]) * 1000) : 0);
+  return null;
+}
+function avgOf(arr){
+  const n = arr.length, trim = Math.ceil(n * 0.05);
+  const sorted = [...arr].sort((a, b) => a - b);
+  const mid = sorted.slice(trim, n - trim);
+  if (mid.some(x => !isFinite(x))) return Infinity;
+  return mid.reduce((a, b) => a + b, 0) / mid.length;
+}
+function rolling(arr, k){
+  return arr.map((_, i) => i + 1 < k ? null : avgOf(arr.slice(i + 1 - k, i + 1)));
+}
+function bestSingle(){
+  let b = Infinity;
+  for (const s of solves){ const v = eff(s); if (v < b) b = v; }
+  return b;
+}
+
+/* ---------- scramble ---------- */
+function newScramble(){
+  const faces = ['R','L','U','D','F','B'], axis = { R:0, L:0, U:1, D:1, F:2, B:2 }, suf = ['', "'", '2'];
+  const out = []; let last = -1;
+  while (out.length < 20){
+    const f = faces[Math.floor(Math.random() * 6)];
+    if (axis[f] === last) continue;
+    last = axis[f];
+    out.push(f + suf[Math.floor(Math.random() * 3)]);
+  }
+  scramble = out.join(' ');
+  $('scramble').textContent = scramble;
+}
+
+/* ---------- audio ---------- */
+let actx = null;
+function ensureAudio(){
+  try{
+    if (!actx){ const C = window.AudioContext || window.webkitAudioContext; if (C) actx = new C(); }
+    if (actx && actx.state === 'suspended') actx.resume();
+  }catch(e){}
+}
+function beep(n){
+  if (!settings.beep || !actx) return;
+  try{
+    for (let i = 0; i < n; i++){
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * 0.22;
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + 0.18);
+    }
+  }catch(e){}
+}
+
+/* ---------- timer engine ---------- */
+const pad = $('pad'), timeEl = $('time'), hintEl = $('hint'), noteEl = $('note');
+const tiles = [...$('face').children];
+const isCoarse = () => window.matchMedia('(pointer: coarse)').matches;
+
+function startLoop(){ if (!S.raf) S.raf = requestAnimationFrame(loop); }
+function loop(){
+  S.raf = 0; tick();
+  if (S.phase !== 'idle' || S.holding) S.raf = requestAnimationFrame(loop);
+}
+function tick(){
+  const now = performance.now();
+  if (S.holding && !S.ready && now - S.holdStart >= HOLD_MS) S.ready = true;
+  if (S.phase === 'prep' && now - S.prepStart >= S.prepMs) endPrep();
+  if (S.phase === 'inspect'){
+    const el = now - S.inspStart;
+    if (!S.b8 && el >= 8000){ S.b8 = true; beep(1); }
+    if (!S.b12 && el >= 12000){ S.b12 = true; beep(2); }
+    if (settings.auto && el >= INSPECT_MS){
+      S.holding = false; S.ready = false; S.down = false;
+      startRun(true); return;
+    }
+  }
+  render();
+}
+
+function beginSequence(){
+  S.note = '';
+  if (settings.prep > 0) startPrep();
+  else if (settings.insp) startInspect();
+}
+function startPrep(){
+  S.phase = 'prep'; S.prepMs = settings.prep * 1000; S.prepStart = performance.now(); startLoop(); render();
+}
+function endPrep(){
+  if (settings.insp) startInspect();
+  else { S.phase = 'idle'; S.armed = true; render(); }
+}
+function startInspect(){
+  S.phase = 'inspect'; S.inspStart = performance.now(); S.b8 = false; S.b12 = false; startLoop(); render();
+}
+function startRun(auto){
+  let now = performance.now();
+  let pen = 0;
+  if (auto === true){
+    now = S.inspStart + INSPECT_MS;   // starts exactly when inspection ends, so no penalty
+  } else if (S.phase === 'inspect'){
+    const insp = now - S.inspStart;
+    if (insp > DNF_AFTER) pen = -1; else if (insp > INSPECT_MS) pen = 2000;
+  }
+  S.pen = pen; S.runStart = now; S.phase = 'running'; S.armed = false; S.note = '';
+  document.body.classList.add('running');
+  startLoop(); render();
+}
+function stopRun(){
+  const now = performance.now();
+  const ms = Math.max(1, Math.round(now - S.runStart));
+  const prevBest = bestSingle();
+  const s = { id:uid(), ms, pen:S.pen, ts:Date.now(), scr:scramble };
+  solves.push(s); saveSolves();
+  S.phase = 'idle'; S.armed = false; S.down = false; S.holding = false; S.ready = false; S.pressed = false;
+  document.body.classList.remove('running');
+  if (s.pen === -1) S.note = 'DNF: you started after 17 seconds of inspection';
+  else if (s.pen > 0) S.note = '+2: you started after 15 seconds of inspection';
+  else if (isFinite(prevBest) && eff(s) < prevBest) S.note = 'New best single';
+  else S.note = '';
+  newScramble();
+  renderAll();
+}
+function cancelSolve(){
+  if (S.phase === 'prep' || S.phase === 'inspect' || S.armed){
+    S.phase = 'idle'; S.armed = false; S.holding = false; S.ready = false; S.pressed = false; S.down = false;
+    render();
+  }
+}
+
+function handleDown(){
+  ensureAudio();
+  if (S.phase === 'running'){ stopRun(); return; }
+  S.down = true;
+  if (S.phase === 'prep') return;                 // a tap skips the countdown (on release)
+  if (!S.armed && S.phase === 'idle' && (settings.insp || settings.prep > 0)){
+    S.pressed = true; render(); return;           // tap to begin
+  }
+  S.holding = true; S.ready = false; S.holdStart = performance.now();
+  startLoop(); render();
+}
+function handleUp(){
+  if (!S.down) return;
+  S.down = false;
+  if (S.phase === 'prep'){ endPrep(); return; }
+  if (S.holding){
+    const ok = S.ready;
+    S.holding = false; S.ready = false;
+    if (ok) startRun(); else render();
+    return;
+  }
+  if (S.pressed){ S.pressed = false; beginSequence(); }
+}
+
+/* ---------- timer display ---------- */
+function setTiles(n){ tiles.forEach((t, i) => t.classList.toggle('on', i < n)); }
+function render(){
+  const now = performance.now(), coarse = isCoarse();
+  const holdTxt = coarse ? 'Press and hold the timer' : 'Hold space';
+  const tapTxt = coarse ? 'Tap the timer' : 'Tap space';
+  let state = 'idle', text, hint = '', on = 0, small = false;
+
+  const last = solves[solves.length - 1];
+  const idleText = last ? solveText(last) : '0.00';
+
+  if (S.phase === 'running'){
+    const el = now - S.runStart;
+    state = 'running';
+    if (settings.live === 'live') text = fmt(el);
+    else if (settings.live === 'seconds'){
+      const secs = Math.floor(el / 1000);
+      text = secs >= 60 ? Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0') : String(secs);
+    } else { text = 'Solving'; small = true; }
+    hint = coarse ? 'Tap anywhere to stop' : 'Press any key to stop';
+  }
+  else if (S.phase === 'prep'){
+    const rem = S.prepMs - (now - S.prepStart);
+    state = 'prep'; text = String(Math.max(1, Math.ceil(rem / 1000)));
+    on = Math.ceil(9 * rem / S.prepMs);
+    hint = 'Place the cube down. ' + (settings.insp ? 'Inspection starts at 0.' : 'You can start at 0.') + ' ' + (coarse ? 'Tap' : 'Tap space') + ' to skip.';
+  }
+  else if (S.phase === 'inspect'){
+    const el = now - S.inspStart;
+    if (el < INSPECT_MS) text = String(Math.ceil((INSPECT_MS - el) / 1000));
+    else if (el <= DNF_AFTER) text = '+2';
+    else text = 'DNF';
+    state = el < 8000 ? 'inspect1' : el < 12000 ? 'inspect2' : 'inspect3';
+    on = Math.max(0, Math.ceil(9 * (INSPECT_MS - el) / INSPECT_MS));
+    if (S.holding){
+      state = S.ready ? 'ready' : 'hold';
+      on = S.ready ? 9 : Math.floor(9 * Math.min(1, (now - S.holdStart) / HOLD_MS));
+      hint = S.ready ? 'Release to start' : 'Keep holding…';
+    } else {
+      hint = settings.auto
+        ? 'Inspecting. The solve starts by itself at 0, or start early: ' + holdTxt.toLowerCase() + ', then release.'
+        : 'Inspecting. ' + holdTxt + ', then release to start.';
+    }
+  }
+  else {
+    text = idleText;
+    if (S.holding){
+      state = S.ready ? 'ready' : 'hold';
+      on = S.ready ? 9 : Math.floor(9 * Math.min(1, (now - S.holdStart) / HOLD_MS));
+      hint = S.ready ? 'Release to start' : 'Keep holding…';
+    } else if (S.pressed){
+      state = 'pressed'; hint = 'Release to begin';
+    } else if (S.armed){
+      hint = holdTxt + ' to start, release when it turns green.';
+    } else if (settings.insp || settings.prep > 0){
+      hint = tapTxt + ' to begin ' + (settings.prep > 0 ? 'the countdown.' : 'inspection.');
+    } else {
+      hint = holdTxt + ', release when it turns green.';
+    }
+  }
+
+  if (pad.dataset.state !== state) pad.dataset.state = state;
+  if (timeEl.textContent !== text) timeEl.textContent = text;
+  timeEl.classList.toggle('txt', small);
+  const noteTxt = S.phase === 'idle' && !S.holding && !S.pressed ? S.note : '';
+  if (noteEl.textContent !== noteTxt) noteEl.textContent = noteTxt;
+  if (hintEl.textContent !== hint) hintEl.textContent = hint;
+  setTiles(on);
+  $('cancelRow').hidden = !(S.phase === 'prep' || S.phase === 'inspect' || S.armed);
+}
+
+/* ---------- statistics ---------- */
+function renderStats(){
+  const effs = solves.map(eff), n = effs.length, fin = effs.filter(isFinite);
+  const cur = k => n >= k ? avgOf(effs.slice(-k)) : null;
+  const best = k => {
+    if (n < k) return null;
+    let b = Infinity;
+    for (let i = k; i <= n; i++){ const v = avgOf(effs.slice(i - k, i)); if (v < b) b = v; }
+    return b;
+  };
+  const curSingle = n ? effs[n - 1] : null;
+  const bestS = fin.length ? fin.reduce((a, b) => Math.min(a, b)) : (n ? Infinity : null);
+  const single = v => v === null ? '—' : (!isFinite(v) ? 'DNF' : fmt(v));
+  const rows = [
+    ['Single', single(curSingle), single(bestS)],
+    ['Ao5', cell(cur(5)), cell(best(5))],
+    ['Ao12', cell(cur(12)), cell(best(12))],
+    ['Ao100', cell(cur(100)), cell(best(100))]
+  ];
+  $('statRows').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+
+  let mean = null, median = null, sd = null, worst = null;
+  if (fin.length){
+    mean = fin.reduce((a, b) => a + b, 0) / fin.length;
+    const sorted = [...fin].sort((a, b) => a - b), h = sorted.length >> 1;
+    median = sorted.length % 2 ? sorted[h] : (sorted[h - 1] + sorted[h]) / 2;
+    sd = Math.sqrt(fin.reduce((a, b) => a + (b - mean) * (b - mean), 0) / fin.length);
+    worst = sorted[sorted.length - 1];
+  }
+  const dnfs = n - fin.length;
+  const items = [
+    ['Mean', mean === null ? '—' : fmtAvg(mean)],
+    ['Median', median === null ? '—' : fmtAvg(median)],
+    ['Worst single', worst === null ? '—' : fmt(worst)],
+    ['Standard deviation', sd === null ? '—' : (sd / 1000).toFixed(2) + ' s'],
+    ['Solves', n + (dnfs ? ` (${dnfs} DNF)` : '')]
+  ];
+  $('statList').innerHTML = items.map(i => `<dt>${i[0]}</dt><dd>${i[1]}</dd>`).join('');
+}
+
+/* ---------- graph ---------- */
+let lastChartW = 0;
+function niceStep(raw){
+  const steps = [100,200,500,1000,2000,5000,10000,15000,30000,60000,120000,300000,600000];
+  for (const s of steps) if (s >= raw) return s;
+  return steps[steps.length - 1];
+}
+const tickLabel = ms => ms >= 60000 ? Math.floor(ms / 60000) + ':' + String(Math.round((ms % 60000) / 1000)).padStart(2, '0') : (ms / 1000).toFixed(ms % 1000 ? 1 : 0);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+function renderGraph(){
+  const host = $('chart');
+  if (!solves.length){
+    host.innerHTML = '<p class="empty">Your solve graph will appear here after your first solve.</p>';
+    return;
+  }
+  const effAll = solves.map(eff), a5 = rolling(effAll, 5), a12 = rolling(effAll, 12);
+  const R = settings.range, start = R > 0 ? Math.max(0, solves.length - R) : 0;
+  const idx = []; for (let i = start; i < solves.length; i++) idx.push(i);
+  const m = idx.length;
+  const W = Math.max(280, Math.floor(host.clientWidth || 600)), H = W < 520 ? 250 : 310;
+  lastChartW = W;
+  const L = 46, Rm = 14, T = 14, B = 46, pw = W - L - Rm, ph = H - T - B;
+
+  let lo = Infinity, hi = -Infinity;
+  const take = v => { if (v != null && isFinite(v)){ if (v < lo) lo = v; if (v > hi) hi = v; } };
+  idx.forEach(i => { take(effAll[i]); if (settings.ao5) take(a5[i]); if (settings.ao12) take(a12[i]); });
+  if (!isFinite(lo)){ lo = 0; hi = 10000; }
+  if (hi - lo < 1000){ const c = (hi + lo) / 2; lo = c - 500; hi = c + 500; }
+  const p = (hi - lo) * 0.1; lo = Math.max(0, lo - p); hi += p;
+
+  const x = j => L + (m === 1 ? pw / 2 : pw * j / (m - 1));
+  const y = v => T + ph * (1 - (v - lo) / (hi - lo));
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Solve times over time">`;
+  const step = niceStep((hi - lo) / 4);
+  for (let t = Math.ceil(lo / step) * step; t <= hi; t += step){
+    svg += `<line class="gl" x1="${L}" x2="${W - Rm}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/>` +
+           `<text class="ax" x="${L - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${tickLabel(t)}</text>`;
+  }
+  // x labels: date + solve number
+  const nT = Math.max(2, Math.min(m, Math.floor(pw / 78)));
+  const seen = new Set();
+  for (let k = 0; k < nT; k++){
+    const j = nT === 1 ? 0 : Math.round(k * (m - 1) / (nT - 1));
+    if (seen.has(j)) continue; seen.add(j);
+    const i = idx[j];
+    const anchor = j === 0 && m > 1 ? 'start' : (j === m - 1 && m > 1 ? 'end' : 'middle');
+    svg += `<text class="ax" x="${x(j).toFixed(1)}" y="${H - 24}" text-anchor="${anchor}">${esc(fmtDate(solves[i].ts, false))}</text>` +
+           `<text class="ax" x="${x(j).toFixed(1)}" y="${H - 9}" text-anchor="${anchor}" style="opacity:.75">#${i + 1}</text>`;
+  }
+  const path = getter => {
+    let d = '', on = false;
+    idx.forEach((i, j) => {
+      const v = getter(i);
+      if (v != null && isFinite(v)){ d += (on ? 'L' : 'M') + x(j).toFixed(1) + ' ' + y(v).toFixed(1) + ' '; on = true; } else on = false;
+    });
+    return d;
+  };
+  if (settings.ao12) svg += `<path d="${path(i => a12[i])}" fill="none" stroke="var(--g-ao12)" stroke-width="2.2" stroke-linejoin="round"/>`;
+  if (settings.ao5) svg += `<path d="${path(i => a5[i])}" fill="none" stroke="var(--g-ao5)" stroke-width="2" stroke-linejoin="round"/>`;
+  svg += `<path d="${path(i => effAll[i])}" fill="none" stroke="var(--g-solve)" stroke-width="1.5" stroke-linejoin="round" opacity=".7"/>`;
+  const r = m > 120 ? 1.6 : 3.2;
+  idx.forEach((i, j) => {
+    if (isFinite(effAll[i])) svg += `<circle cx="${x(j).toFixed(1)}" cy="${y(effAll[i]).toFixed(1)}" r="${r}" fill="var(--g-solve)"/>`;
+    else svg += `<path d="M${(x(j) - 3.5).toFixed(1)} ${T + 1} l7 7 m0 -7 l-7 7" stroke="var(--t-hold)" stroke-width="1.8" fill="none"/>`;
+  });
+  svg += `<g id="hov" style="display:none"><line id="hovL" y1="${T}" y2="${T + ph}" stroke="var(--muted)" stroke-dasharray="3 3"/><circle id="hovC" r="5.5" fill="none" stroke="var(--text)" stroke-width="2"/></g>`;
+  svg += `<rect id="hit" x="${L}" y="${T}" width="${pw}" height="${ph}" fill="transparent"/></svg><div class="tip" id="tip" hidden></div>`;
+  host.innerHTML = svg;
+
+  const tip = $('tip'), hov = $('hov'), hovL = $('hovL'), hovC = $('hovC');
+  const show = e => {
+    const rect = host.querySelector('svg').getBoundingClientRect();
+    const px = (e.clientX - rect.left) * (W / rect.width);
+    const j = m === 1 ? 0 : Math.max(0, Math.min(m - 1, Math.round((px - L) / pw * (m - 1))));
+    const i = idx[j], s = solves[i], cx = x(j);
+    const v = effAll[i];
+    hov.style.display = ''; hovL.setAttribute('x1', cx); hovL.setAttribute('x2', cx);
+    if (isFinite(v)){ hovC.setAttribute('cx', cx); hovC.setAttribute('cy', y(v)); hovC.style.display = ''; } else hovC.style.display = 'none';
+    let html = `<b>${esc(solveText(s))}</b> &nbsp;#${i + 1}<br>${esc(fmtDate(s.ts))}`;
+    if (a5[i] != null) html += `<br>Ao5 ${cell(a5[i])}`;
+    if (a12[i] != null) html += `${a5[i] != null ? ' · ' : '<br>'}Ao12 ${cell(a12[i])}`;
+    tip.innerHTML = html; tip.hidden = false;
+    const scale = rect.width / W, tw = tip.offsetWidth;
+    let left = cx * scale + 12; if (left + tw > rect.width) left = cx * scale - tw - 12;
+    tip.style.left = Math.max(0, left) + 'px';
+    tip.style.top = Math.max(0, (isFinite(v) ? y(v) : T) * scale - 58) + 'px';
+  };
+  const hide = () => { hov.style.display = 'none'; tip.hidden = true; };
+  const hit = $('hit');
+  hit.addEventListener('pointermove', show);
+  hit.addEventListener('pointerdown', show);
+  hit.addEventListener('pointerleave', hide);
+}
+
+/* ---------- solve list ---------- */
+function renderList(){
+  const ul = $('list'), n = solves.length;
+  if (!n){ ul.innerHTML = '<li class="empty">No solves yet. Your times will be listed here.</li>'; $('btnMore').hidden = true; return; }
+  const show = Math.min(n, listLimit);
+  let html = '';
+  for (let k = 0; k < show; k++){
+    const i = n - 1 - k, s = solves[i];
+    html += `<li class="row"><span class="idx">${i + 1}</span>` +
+      `<span><span class="rt">${esc(solveText(s))}</span><span class="rd">${esc(fmtDate(s.ts))}</span></span>` +
+      `<span class="row-actions"><button class="lnk" data-edit="${s.id}" type="button" aria-label="Edit solve ${i + 1}">Edit</button>` +
+      `<button class="lnk danger" data-del="${s.id}" type="button" aria-label="Delete solve ${i + 1}">Delete</button></span></li>`;
+  }
+  ul.innerHTML = html;
+  const more = $('btnMore');
+  more.hidden = n <= listLimit;
+  more.textContent = `Show more (${n - listLimit} older)`;
+}
+function renderLast(){
+  const last = solves[solves.length - 1], box = $('after');
+  if (!last){ box.hidden = true; return; }
+  box.hidden = false;
+  $('afterLbl').innerHTML = `Solve ${solves.length}: <b>${esc(solveText(last))}</b>`;
+  $('btnPlus2').setAttribute('aria-pressed', String(last.pen === 2000));
+  $('btnDNF').setAttribute('aria-pressed', String(last.pen === -1));
+}
+function renderAll(){ renderStats(); renderGraph(); renderList(); renderLast(); render(); }
+
+/* ---------- undo / toast ---------- */
+function pushUndo(){ undoSnap = JSON.stringify(solves); }
+function showToast(msg){
+  $('toastMsg').textContent = msg; $('toast').hidden = false;
+  clearTimeout(undoTimer); undoTimer = setTimeout(() => { $('toast').hidden = true; }, 7000);
+}
+$('toastUndo').addEventListener('click', () => {
+  if (undoSnap){
+    try{ solves = JSON.parse(undoSnap); }catch(e){}
+    undoSnap = null; saveSolves(); S.note = ''; renderAll();
+  }
+  $('toast').hidden = true;
+});
+
+/* ---------- editing ---------- */
+function deleteSolve(id){
+  pushUndo();
+  solves = solves.filter(s => s.id !== id);
+  saveSolves(); S.note = ''; renderAll(); showToast('Solve deleted');
+}
+function openEdit(id){
+  const s = solves.find(v => v.id === id); if (!s) return;
+  editingId = id;
+  $('eTime').value = fmt(s.ms);
+  document.querySelectorAll('input[name=ePen]').forEach(r => { r.checked = Number(r.value) === s.pen; });
+  $('eDate').value = toLocalInput(s.ts);
+  $('eDate').dataset.orig = toLocalInput(s.ts);
+  $('eScr').textContent = s.scr || 'No scramble saved';
+  $('eMsg').textContent = ''; $('eMsg').className = 'inline-msg';
+  $('dlgEdit').showModal();
+}
+$('eSave').addEventListener('click', () => {
+  const s = solves.find(v => v.id === editingId); if (!s) return;
+  const ms = parseTime($('eTime').value);
+  if (!ms || ms <= 0){
+    $('eMsg').textContent = 'Enter a time like 12.34 or 1:05.20.'; $('eMsg').className = 'inline-msg err'; return;
+  }
+  const pen = Number(document.querySelector('input[name=ePen]:checked').value);
+  const dv = $('eDate').value;
+  if (dv && dv !== $('eDate').dataset.orig){
+    const t = new Date(dv).getTime();
+    if (Number.isFinite(t)) s.ts = t;
+  }
+  s.ms = ms; s.pen = pen;
+  solves.sort((a, b) => a.ts - b.ts);
+  saveSolves(); S.note = ''; renderAll();
+  $('dlgEdit').close();
+});
+$('eDelete').addEventListener('click', () => { const id = editingId; $('dlgEdit').close(); deleteSolve(id); });
+
+$('list').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.edit) openEdit(b.dataset.edit);
+  else if (b.dataset.del) deleteSolve(b.dataset.del);
+});
+$('btnMore').addEventListener('click', () => { listLimit += 100; renderList(); });
+$('btnClear').addEventListener('click', () => {
+  if (!solves.length) return;
+  pushUndo(); solves = []; saveSolves(); S.note = ''; renderAll(); showToast('All solves cleared');
+});
+
+function setLastPen(p){
+  const last = solves[solves.length - 1]; if (!last) return;
+  last.pen = last.pen === p ? 0 : p;
+  saveSolves(); S.note = ''; renderAll();
+}
+$('btnPlus2').addEventListener('click', () => setLastPen(2000));
+$('btnDNF').addEventListener('click', () => setLastPen(-1));
+$('btnDelLast').addEventListener('click', () => { const l = solves[solves.length - 1]; if (l) deleteSolve(l.id); });
+$('btnScr').addEventListener('click', newScramble);
+$('btnCancel').addEventListener('click', cancelSolve);
+
+/* ---------- import / export ---------- */
+function buildExport(includeScr){
+  const rows = solves.map(s => {
+    const o = { t:s.ms, p:s.pen, d:s.ts };
+    if (includeScr && s.scr) o.s = s.scr;
+    return JSON.stringify(o);
+  });
+  return '{"app":"cubetimer","version":1,"count":' + solves.length + ',"solves":[\n' + rows.join(',\n') + '\n]}';
+}
+function refreshExport(){ $('expText').value = buildExport($('incScr').checked); }
+$('incScr').addEventListener('change', refreshExport);
+$('btnSelect').addEventListener('click', () => { $('expText').focus(); $('expText').select(); });
+$('btnCopy').addEventListener('click', async () => {
+  const ta = $('expText'), msg = $('expMsg');
+  try{
+    await navigator.clipboard.writeText(ta.value);
+    msg.textContent = 'Copied to clipboard.';
+  }catch(e){
+    ta.focus(); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(_){}
+    msg.textContent = ok ? 'Copied to clipboard.' : 'Text selected. Press Ctrl+C (or Cmd+C) to copy.';
+  }
+});
+
+function parseImport(text){
+  text = text.trim();
+  if (!text) throw new Error('Paste an export or a list of times first.');
+  if (text[0] === '{' || text[0] === '['){
+    let obj;
+    try{ obj = JSON.parse(text); }
+    catch(e){ throw new Error('This text is incomplete. Paste the whole export, from the first { to the last }.'); }
+    const arr = Array.isArray(obj) ? obj : obj.solves;
+    if (!Array.isArray(arr)) throw new Error('No solves found in this text.');
+    const list = [];
+    arr.forEach(o => {
+      if (!o || typeof o !== 'object') return;
+      const t = Number(o.t ?? o.ms), pn = o.p ?? o.pen ?? 0, d = Number(o.d ?? o.ts);
+      const scr = o.s ?? o.scr;
+      if (Number.isFinite(t) && t > 0 && (pn === 0 || pn === 2000 || pn === -1) && Number.isFinite(d))
+        list.push({ id:uid(), ms:Math.round(t), pen:pn, ts:d, scr:typeof scr === 'string' ? scr : '' });
+    });
+    if (!list.length) throw new Error('No valid solves found in this text.');
+    return { list, plain:false };
+  }
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const list = [], base = Date.now() - lines.length * 1000;
+  lines.forEach((line, k) => {
+    const tok = line.toLowerCase().split(/[\s;\t]+/)[0];
+    let ms = null, pen = 0;
+    if (tok.startsWith('dnf')){
+      pen = -1;
+      const mm = line.match(/([\d:.,]+)\s*\)?\s*$/);
+      ms = mm ? parseTime(mm[1]) : null; if (!ms) ms = 1;
+    } else if (tok.endsWith('+')){
+      const v = parseTime(tok.slice(0, -1));
+      if (v){ if (v > 2000){ ms = v - 2000; pen = 2000; } else ms = v; }
+    } else ms = parseTime(tok.replace(/,$/, ''));
+    if (ms && ms > 0) list.push({ id:uid(), ms, pen, ts:base + k * 1000, scr:'' });
+  });
+  if (!list.length) throw new Error('Could not read any times. Use one time per line, like 12.34 or 1:02.50.');
+  return { list, plain:true, skipped:lines.length - list.length };
+}
+$('btnImport').addEventListener('click', () => {
+  const msg = $('impMsg'); msg.className = 'inline-msg';
+  try{
+    const { list, plain, skipped } = parseImport($('impText').value);
+    const mode = document.querySelector('input[name=impMode]:checked').value;
+    pushUndo();
+    let added = 0, dupes = 0;
+    if (mode === 'replace'){ solves = list; added = list.length; }
+    else {
+      const keys = new Set(solves.map(s => s.ts + '|' + s.ms));
+      list.forEach(s => { const k = s.ts + '|' + s.ms; if (keys.has(k)) dupes++; else { keys.add(k); solves.push(s); added++; } });
+    }
+    solves.sort((a, b) => a.ts - b.ts);
+    saveSolves(); S.note = ''; listLimit = 100; renderAll(); refreshExport();
+    let t = `Imported ${added} solve${added === 1 ? '' : 's'}.`;
+    if (dupes) t += ` Skipped ${dupes} already saved.`;
+    if (plain) t += ' Plain lists have no dates, so the current time was used.';
+    if (skipped) t += ` Skipped ${skipped} unreadable line${skipped === 1 ? '' : 's'}.`;
+    msg.textContent = t;
+    $('impText').value = '';
+    showToast(`Imported ${added} solve${added === 1 ? '' : 's'}`);
+  }catch(err){
+    msg.textContent = err.message; msg.className = 'inline-msg err';
+  }
+});
+
+/* ---------- settings ---------- */
+function syncSettingsUI(){
+  $('setInsp').checked = settings.insp; $('setAuto').checked = settings.auto; $('setBeep').checked = settings.beep;
+  $('setPrep').value = String(settings.prep); $('setLive').value = settings.live;
+  $('range').value = String(settings.range);
+  $('showAo5').checked = settings.ao5; $('showAo12').checked = settings.ao12;
+}
+$('setInsp').addEventListener('change', e => { settings.insp = e.target.checked; saveSettings(); cancelSolve(); render(); });
+$('setAuto').addEventListener('change', e => { settings.auto = e.target.checked; saveSettings(); render(); });
+$('setBeep').addEventListener('change', e => { settings.beep = e.target.checked; saveSettings(); });
+$('setPrep').addEventListener('change', e => { settings.prep = Number(e.target.value); saveSettings(); cancelSolve(); render(); });
+$('setLive').addEventListener('change', e => { settings.live = e.target.value; saveSettings(); });
+$('range').addEventListener('change', e => { settings.range = Number(e.target.value); saveSettings(); renderGraph(); });
+$('showAo5').addEventListener('change', e => { settings.ao5 = e.target.checked; saveSettings(); renderGraph(); });
+$('showAo12').addEventListener('change', e => { settings.ao12 = e.target.checked; saveSettings(); renderGraph(); });
+
+$('btnSettings').addEventListener('click', () => { syncSettingsUI(); $('dlgSettings').showModal(); });
+$('btnData').addEventListener('click', () => { refreshExport(); $('expMsg').textContent = ''; $('impMsg').textContent = ''; $('dlgData').showModal(); });
+document.querySelectorAll('dialog').forEach(d => {
+  d.addEventListener('click', e => { if (e.target === d) d.close(); });
+  d.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => d.close()));
+});
+
+/* ---------- input: keyboard, mouse, touch ---------- */
+const dialogOpen = () => !!document.querySelector('dialog[open]');
+const isField = t => t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
+
+document.addEventListener('keydown', e => {
+  if (dialogOpen() || isField(e.target)) return;
+  if (S.phase === 'running'){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    e.preventDefault(); if (!e.repeat) stopRun(); return;
+  }
+  if (e.code === 'Escape'){ cancelSolve(); return; }
+  if (e.code !== 'Space') return;
+  e.preventDefault();
+  if (e.repeat) return;
+  if (e.target && e.target.tagName === 'BUTTON') e.target.blur();
+  handleDown();
+});
+document.addEventListener('keyup', e => {
+  if (e.code !== 'Space' || dialogOpen() || isField(e.target)) return;
+  e.preventDefault(); handleUp();
+});
+document.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  if (dialogOpen()) return;
+  if (S.phase === 'running'){ e.preventDefault(); stopRun(); return; }
+  if (e.target.closest('#pad')){ e.preventDefault(); handleDown(); }
+});
+document.addEventListener('pointerup', () => handleUp());
+document.addEventListener('pointercancel', () => {
+  if (S.down){ S.down = false; S.holding = false; S.ready = false; S.pressed = false; render(); }
+});
+pad.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('blur', () => {
+  if (S.down && S.phase !== 'running'){ S.down = false; S.holding = false; S.ready = false; S.pressed = false; render(); }
+});
+
+/* ---------- init ---------- */
+if ('ResizeObserver' in window){
+  new ResizeObserver(() => {
+    const w = Math.floor($('chart').clientWidth);
+    if (w && Math.abs(w - lastChartW) > 2) renderGraph();
+  }).observe($('chart'));
+}
+load();
+newScramble();
+syncSettingsUI();
+renderAll();
+})();
+</script>
+</body>
+</html>

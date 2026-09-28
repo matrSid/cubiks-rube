@@ -47,7 +47,7 @@ body{
 button,input,select,textarea{font:inherit;color:inherit}
 .app{max-width:1180px;margin:0 auto;padding:16px 16px 48px}
 
-/* header */
+
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
 .brand{display:flex;align-items:center;gap:10px}
 .brand h1{font-size:20px;line-height:1;margin:0;font-weight:800;letter-spacing:-0.01em}
@@ -55,7 +55,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .logo i{display:block;width:7px;height:7px;border-radius:2px}
 .top-actions{display:flex;gap:8px}
 
-/* buttons & inputs */
+
 .btn{
   border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;cursor:pointer;
   font-weight:500;line-height:1.2;
@@ -79,7 +79,7 @@ textarea{resize:vertical;font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,m
 input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:16px;height:16px;margin:0}
 select{width:auto;min-width:0}
 
-/* layout */
+
 main{display:flex;flex-direction:column;gap:16px}
 .col{display:contents}
 .stage{order:1}.stats{order:2}.graph{order:3}.solves{order:4}
@@ -96,14 +96,13 @@ main{display:flex;flex-direction:column;gap:16px}
 body.running .dim{opacity:.12;pointer-events:none}
 .dim{transition:opacity .15s}
 
-/* scramble */
+
 .scramble{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
 .scr-text{
   font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-weight:500;
   font-size:clamp(15px,2.4vw,19px);line-height:1.75;letter-spacing:.02em;word-spacing:.15em;
 }
 
-/* timer pad */
 .pad{
   --tcol:var(--t-idle);--tc:var(--tile-off);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -136,7 +135,7 @@ body.running .dim{opacity:.12;pointer-events:none}
 .after .lbl b{font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;color:var(--text);font-weight:700}
 .cancel-row{display:flex;justify-content:center;margin-top:12px}
 
-/* stats */
+
 .stat-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .stat-table th{font-weight:500;color:var(--muted);text-align:right;padding:0 0 6px;font-size:13px}
 .stat-table th:first-child{text-align:left}
@@ -147,7 +146,6 @@ body.running .dim{opacity:.12;pointer-events:none}
 .stat-list dt{color:var(--muted)}
 .stat-list dd{text-align:right;font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
 
-/* graph */
 .chart-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px}
 .chart-tools label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .chart-tools .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
@@ -162,7 +160,7 @@ body.running .dim{opacity:.12;pointer-events:none}
 }
 .chart .tip b{font-family:'Azeret Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px}
 
-/* solve list */
+
 .list{list-style:none;margin:0;padding:0;max-height:440px;overflow:auto}
 .row{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:6px;padding:7px 0;border-top:1px solid var(--line)}
 .row:first-child{border-top:0}
@@ -172,7 +170,7 @@ body.running .dim{opacity:.12;pointer-events:none}
 .row-actions{display:flex;gap:2px}
 .more{margin-top:10px;width:100%}
 
-/* dialogs */
+
 dialog{
   border:1px solid var(--line);border-radius:16px;background:var(--panel);color:var(--text);padding:0;
   width:min(540px,calc(100vw - 24px));max-height:calc(100dvh - 24px);
@@ -197,7 +195,7 @@ dialog::backdrop{background:rgba(8,14,26,.6)}
 .section-title{margin:0;font-size:15px;font-weight:700}
 hr.sep{border:0;border-top:1px solid var(--line);margin:0}
 
-/* toast */
+
 .toast{
   position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));
   background:var(--text);color:var(--bg);border-radius:10px;padding:8px 8px 8px 14px;display:flex;align-items:center;gap:10px;z-index:50;
@@ -290,7 +288,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:0}
   </main>
 </div>
 
-<!-- Settings -->
+
 <dialog id="dlgSettings" aria-labelledby="dlgSettingsTitle">
   <div class="dlg-head"><h2 id="dlgSettingsTitle">Settings</h2><button class="lnk" type="button" data-close>Close</button></div>
   <div class="dlg-body">
@@ -328,7 +326,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:0}
   <div class="dlg-foot"><button class="btn primary" type="button" data-close>Done</button></div>
 </dialog>
 
-<!-- Import / export -->
+
 <dialog id="dlgData" aria-labelledby="dlgDataTitle">
   <div class="dlg-head"><h2 id="dlgDataTitle">Import and export</h2><button class="lnk" type="button" data-close>Close</button></div>
   <div class="dlg-body">
@@ -359,7 +357,7 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:0}
   <div class="dlg-foot"><button class="btn" type="button" data-close>Done</button></div>
 </dialog>
 
-<!-- Edit solve -->
+
 <dialog id="dlgEdit" aria-labelledby="dlgEditTitle">
   <div class="dlg-head"><h2 id="dlgEditTitle">Edit solve</h2><button class="lnk" type="button" data-close>Close</button></div>
   <div class="dlg-body">
@@ -394,17 +392,22 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:0}
 
 <div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastUndo">Undo</button></div>
 
+
+<script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>
 (() => {
 'use strict';
 
-/* ---------- constants & state ---------- */
+
 const HOLD_MS = 300, INSPECT_MS = 15000, DNF_AFTER = 17000;
 const DEFAULTS = { insp:false, auto:false, beep:true, prep:0, live:'live', range:100, ao5:true, ao12:true };
 const $ = id => document.getElementById(id);
 
 let settings = { ...DEFAULTS };
-let solves = [];          // sorted by ts ascending: {id, ms, pen (0 | 2000 | -1 for DNF), ts, scr}
+let solves = [];      
 let scramble = '';
 let undoSnap = null;
 let undoTimer = 0;
@@ -412,13 +415,13 @@ let listLimit = 100;
 let editingId = null;
 
 const S = {
-  phase:'idle',            // idle | prep | inspect | running
+  phase:'idle',           
   down:false, pressed:false, holding:false, ready:false, armed:false,
   holdStart:0, prepStart:0, prepMs:0, inspStart:0, runStart:0, pen:0,
   b8:false, b12:false, raf:0, note:''
 };
 
-/* ---------- storage ---------- */
+
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 const validSolve = o => o && typeof o === 'object' && Number.isFinite(o.ms) && o.ms > 0 &&
   (o.pen === 0 || o.pen === 2000 || o.pen === -1) && Number.isFinite(o.ts);
@@ -434,10 +437,10 @@ function load(){
   }catch(e){}
   solves.sort((a,b) => a.ts - b.ts);
 }
-function saveSettings(){ try{ localStorage.setItem('cubetimer:settings', JSON.stringify(settings)); }catch(e){} }
-function saveSolves(){ try{ localStorage.setItem('cubetimer:solves', JSON.stringify(solves)); }catch(e){} }
+function saveSettings(){ try{ localStorage.setItem('cubetimer:settings', JSON.stringify(settings)); }catch(e){} if (window.CloudSync) CloudSync.onSettingsChanged(settings); }
+function saveSolves(){ if (window.CloudSync && CloudSync.onSolvesChanged()) return; try{ localStorage.setItem('cubetimer:solves', JSON.stringify(solves)); }catch(e){} }
 
-/* ---------- formatting & maths ---------- */
+
 function fmt(ms){
   if (ms == null || !isFinite(ms)) return '—';
   const cs = Math.floor(ms / 10), secs = Math.floor(cs / 100), frac = String(cs % 100).padStart(2, '0');
@@ -490,7 +493,7 @@ function bestSingle(){
   return b;
 }
 
-/* ---------- scramble ---------- */
+
 function newScramble(){
   const faces = ['R','L','U','D','F','B'], axis = { R:0, L:0, U:1, D:1, F:2, B:2 }, suf = ['', "'", '2'];
   const out = []; let last = -1;
@@ -504,7 +507,7 @@ function newScramble(){
   $('scramble').textContent = scramble;
 }
 
-/* ---------- audio ---------- */
+
 let actx = null;
 function ensureAudio(){
   try{
@@ -527,7 +530,7 @@ function beep(n){
   }catch(e){}
 }
 
-/* ---------- timer engine ---------- */
+
 const pad = $('pad'), timeEl = $('time'), hintEl = $('hint'), noteEl = $('note');
 const tiles = [...$('face').children];
 const isCoarse = () => window.matchMedia('(pointer: coarse)').matches;
@@ -627,7 +630,7 @@ function handleUp(){
   if (S.pressed){ S.pressed = false; beginSequence(); }
 }
 
-/* ---------- timer display ---------- */
+
 function setTiles(n){ tiles.forEach((t, i) => t.classList.toggle('on', i < n)); }
 function render(){
   const now = performance.now(), coarse = isCoarse();
@@ -698,7 +701,7 @@ function render(){
   $('cancelRow').hidden = !(S.phase === 'prep' || S.phase === 'inspect' || S.armed);
 }
 
-/* ---------- statistics ---------- */
+
 function renderStats(){
   const effs = solves.map(eff), n = effs.length, fin = effs.filter(isFinite);
   const cur = k => n >= k ? avgOf(effs.slice(-k)) : null;
@@ -738,7 +741,6 @@ function renderStats(){
   $('statList').innerHTML = items.map(i => `<dt>${i[0]}</dt><dd>${i[1]}</dd>`).join('');
 }
 
-/* ---------- graph ---------- */
 let lastChartW = 0;
 function niceStep(raw){
   const steps = [100,200,500,1000,2000,5000,10000,15000,30000,60000,120000,300000,600000];
@@ -778,7 +780,7 @@ function renderGraph(){
     svg += `<line class="gl" x1="${L}" x2="${W - Rm}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/>` +
            `<text class="ax" x="${L - 8}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${tickLabel(t)}</text>`;
   }
-  // x labels: date + solve number
+
   const nT = Math.max(2, Math.min(m, Math.floor(pw / 78)));
   const seen = new Set();
   for (let k = 0; k < nT; k++){
@@ -834,7 +836,7 @@ function renderGraph(){
   hit.addEventListener('pointerleave', hide);
 }
 
-/* ---------- solve list ---------- */
+
 function renderList(){
   const ul = $('list'), n = solves.length;
   if (!n){ ul.innerHTML = '<li class="empty">No solves yet. Your times will be listed here.</li>'; $('btnMore').hidden = true; return; }
@@ -862,10 +864,10 @@ function renderLast(){
 }
 function renderAll(){ renderStats(); renderGraph(); renderList(); renderLast(); render(); }
 
-/* ---------- undo / toast ---------- */
+
 function pushUndo(){ undoSnap = JSON.stringify(solves); }
-function showToast(msg){
-  $('toastMsg').textContent = msg; $('toast').hidden = false;
+function showToast(msg, noUndo){
+  $('toastMsg').textContent = msg; $('toastUndo').hidden = !!noUndo; $('toast').hidden = false;
   clearTimeout(undoTimer); undoTimer = setTimeout(() => { $('toast').hidden = true; }, 7000);
 }
 $('toastUndo').addEventListener('click', () => {
@@ -876,7 +878,6 @@ $('toastUndo').addEventListener('click', () => {
   $('toast').hidden = true;
 });
 
-/* ---------- editing ---------- */
 function deleteSolve(id){
   pushUndo();
   solves = solves.filter(s => s.id !== id);
@@ -934,7 +935,7 @@ $('btnDelLast').addEventListener('click', () => { const l = solves[solves.length
 $('btnScr').addEventListener('click', newScramble);
 $('btnCancel').addEventListener('click', cancelSolve);
 
-/* ---------- import / export ---------- */
+
 function buildExport(includeScr){
   const rows = solves.map(s => {
     const o = { t:s.ms, p:s.pen, d:s.ts };
@@ -1022,7 +1023,7 @@ $('btnImport').addEventListener('click', () => {
   }
 });
 
-/* ---------- settings ---------- */
+
 function syncSettingsUI(){
   $('setInsp').checked = settings.insp; $('setAuto').checked = settings.auto; $('setBeep').checked = settings.beep;
   $('setPrep').value = String(settings.prep); $('setLive').value = settings.live;
@@ -1045,7 +1046,7 @@ document.querySelectorAll('dialog').forEach(d => {
   d.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => d.close()));
 });
 
-/* ---------- input: keyboard, mouse, touch ---------- */
+
 const dialogOpen = () => !!document.querySelector('dialog[open]');
 const isField = t => t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName);
 
@@ -1088,11 +1089,26 @@ if ('ResizeObserver' in window){
     if (w && Math.abs(w - lastChartW) > 2) renderGraph();
   }).observe($('chart'));
 }
+window.CubeApp = {
+  getSolves: () => solves,
+  setSolves: list => { solves = list; if (S.phase !== 'running') renderAll(); },
+  readGuest: () => { try{ const a = JSON.parse(localStorage.getItem('cubetimer:solves') || '[]'); return Array.isArray(a) ? a.filter(validSolve).map(o => ({ id:o.id || uid(), ms:o.ms, pen:o.pen, ts:o.ts, scr:o.scr || '' })).sort((a, b) => a.ts - b.ts) : []; }catch(e){ return []; } },
+  clearGuest: () => { try{ localStorage.removeItem('cubetimer:solves'); }catch(e){} },
+  getSettings: () => settings,
+  setSettings: s => {
+    const restart = s.insp !== settings.insp || s.prep !== settings.prep;
+    settings = { ...DEFAULTS, ...s }; try{ localStorage.setItem('cubetimer:settings', JSON.stringify(settings)); }catch(e){}
+    if (restart && S.phase !== 'running') cancelSolve();
+    syncSettingsUI(); renderGraph(); render();
+  },
+  toast: m => showToast(m, true)
+};
 load();
 newScramble();
 syncSettingsUI();
 renderAll();
 })();
 </script>
+<script src="cloud-sync.js"></script>
 </body>
 </html>
